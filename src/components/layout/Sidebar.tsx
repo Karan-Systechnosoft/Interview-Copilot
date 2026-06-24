@@ -6,7 +6,7 @@ import { LayoutDashboard, FileText, Briefcase, PlayCircle, History } from 'lucid
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { name: 'Candidate Profile', href: '/profile/review', icon: FileText },
+  { name: 'Candidate Profile', href: '/profile', icon: FileText },
   { name: 'Job Descriptions', href: '/jd/upload', icon: Briefcase },
   { name: 'Interview Setup', href: '/interview/setup', icon: PlayCircle },
   { name: 'Session History', href: '/interview/history', icon: History },
@@ -19,7 +19,7 @@ export function Sidebar() {
     <div className="hidden border-r bg-muted/40 md:flex md:w-64 md:flex-col">
       <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
         <Link href="/" className="flex items-center gap-2 font-semibold">
-          <span>Interview Copilot</span>
+          <span>PrepJinni</span>
         </Link>
       </div>
       <div className="flex-1 overflow-auto py-2">

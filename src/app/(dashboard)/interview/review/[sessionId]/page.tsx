@@ -5,8 +5,11 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { CheckCircle2, AlertTriangle, Clock, PlayCircle } from 'lucide-react'
+import { useParams } from 'next/navigation'
 
-export default function SessionReviewPage({ params }: { params: { sessionId: string } }) {
+export default function SessionReviewPage() {
+  const params = useParams<{ sessionId: string }>()
+  
   return (
     <div className="max-w-5xl mx-auto space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">

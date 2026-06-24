@@ -28,7 +28,7 @@ export default function LandingPage() {
             <div className="w-8 h-8 rounded-lg bg-teal-600 flex items-center justify-center text-white">
               <BrainCircuit className="w-5 h-5" />
             </div>
-            <span className="text-xl font-bold text-slate-900 tracking-tight">Interview Copilot</span>
+            <span className="text-xl font-bold text-slate-900 tracking-tight">PrepJinni</span>
           </div>
           
           <nav className="hidden md:flex items-center gap-8">
@@ -470,7 +470,7 @@ export default function LandingPage() {
             
             <Accordion className="w-full space-y-4">
               {[
-                {q: "What is an AI Interview Copilot?", a: "It's an intelligent assistant that listens to interview questions, analyzes your unique resume and job description, and provides real-time guidance to help you formulate the best possible answer."},
+                {q: "What is PrepJinni?", a: "It's an intelligent assistant that listens to interview questions, analyzes your unique resume and job description, and provides real-time guidance to help you formulate the best possible answer."},
                 {q: "Can I practice with my resume and job description?", a: "Yes. Simply upload your resume and paste the job description. The AI will tailor every mock question and answer suggestion to fit your actual experience and the role's specific needs."},
                 {q: "Does it support behavioral and technical interviews?", a: "Absolutely. You can select different interview modes in the dashboard. The Copilot adjusts its AI models to handle HR screening, behavioral STAR questions, and technical discussions."},
                 {q: "Can I review my interview performance?", a: "Yes. After every session, you get a full transcript, detected questions, suggested answers, and a detailed breakdown of what you did well and where you can improve."},
@@ -521,7 +521,7 @@ export default function LandingPage() {
                  <div className="w-6 h-6 rounded bg-teal-600 flex items-center justify-center text-white">
                    <BrainCircuit className="w-3 h-3" />
                  </div>
-                 <span className="font-bold text-slate-900">Interview Copilot</span>
+                 <span className="font-bold text-slate-900">PrepJinni</span>
                </div>
                <p className="text-sm text-slate-500">Your intelligent assistant for interview mastery and career growth.</p>
                <div className="flex gap-4 pt-2">
@@ -569,7 +569,7 @@ export default function LandingPage() {
           </div>
           
           <div className="pt-8 border-t border-slate-100 flex flex-col md:flex-row items-center justify-between gap-4">
-            <p className="text-sm text-slate-500">© 2026 Interview Copilot. All rights reserved.</p>
+            <p className="text-sm text-slate-500">© 2026 PrepJinni. All rights reserved.</p>
             <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="text-sm text-slate-500 hover:text-teal-600 transition-colors">
               Back to top ↑
             </button>

@@ -3,7 +3,7 @@
 -- Create extension for UUIDs if not exists
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- IC_USERS
+-- ic_users
 CREATE TABLE IF NOT EXISTS public.ic_users (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name TEXT,
@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS public.ic_users (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- IC_EDUCATION
+-- ic_education
 CREATE TABLE IF NOT EXISTS public.ic_education (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID REFERENCES public.ic_users(id) ON DELETE CASCADE,
@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS public.ic_education (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- IC_EXPERIENCE
+-- ic_experience
 CREATE TABLE IF NOT EXISTS public.ic_experience (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID REFERENCES public.ic_users(id) ON DELETE CASCADE,
@@ -59,7 +59,7 @@ CREATE TABLE IF NOT EXISTS public.ic_experience (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- IC_PROJECTS
+-- ic_projects
 CREATE TABLE IF NOT EXISTS public.ic_projects (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID REFERENCES public.ic_users(id) ON DELETE CASCADE,
@@ -75,7 +75,7 @@ CREATE TABLE IF NOT EXISTS public.ic_projects (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- IC_CERTIFICATES
+-- ic_certificates
 CREATE TABLE IF NOT EXISTS public.ic_certificates (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID REFERENCES public.ic_users(id) ON DELETE CASCADE,
@@ -92,7 +92,7 @@ CREATE TABLE IF NOT EXISTS public.ic_certificates (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- IC_SOCIAL_LINKS
+-- ic_social_links
 CREATE TABLE IF NOT EXISTS public.ic_social_links (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID REFERENCES public.ic_users(id) ON DELETE CASCADE,
@@ -106,7 +106,7 @@ CREATE TABLE IF NOT EXISTS public.ic_social_links (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- IC_SKILLS
+-- ic_skills
 CREATE TABLE IF NOT EXISTS public.ic_skills (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     skill_name TEXT UNIQUE,
@@ -117,7 +117,7 @@ CREATE TABLE IF NOT EXISTS public.ic_skills (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- IC_SKILLS_MAPPING
+-- ic_skills_mapping
 CREATE TABLE IF NOT EXISTS public.ic_skills_mapping (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     skill_id UUID REFERENCES public.ic_skills(id) ON DELETE CASCADE,
@@ -132,7 +132,7 @@ CREATE TABLE IF NOT EXISTS public.ic_skills_mapping (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- IC_JOB_DESCRIPTIONS
+-- ic_job_descriptions
 CREATE TABLE IF NOT EXISTS public.ic_job_descriptions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID REFERENCES public.ic_users(id) ON DELETE CASCADE,
@@ -157,7 +157,7 @@ CREATE TABLE IF NOT EXISTS public.ic_job_descriptions (
     updated_by UUID
 );
 
--- IC_INTERVIEW_SESSION
+-- ic_interview_session
 CREATE TABLE IF NOT EXISTS public.ic_interview_session (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID REFERENCES public.ic_users(id) ON DELETE CASCADE,
@@ -176,7 +176,7 @@ CREATE TABLE IF NOT EXISTS public.ic_interview_session (
     is_active BOOLEAN DEFAULT TRUE
 );
 
--- IC_USER_PROMPTS
+-- ic_user_prompts
 CREATE TABLE IF NOT EXISTS public.ic_user_prompts (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID REFERENCES public.ic_users(id) ON DELETE CASCADE,
@@ -190,7 +190,7 @@ CREATE TABLE IF NOT EXISTS public.ic_user_prompts (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- IC_REF_LLM
+-- ic_ref_llm
 CREATE TABLE IF NOT EXISTS public.ic_ref_llm (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     provider_name TEXT,
@@ -207,7 +207,7 @@ CREATE TABLE IF NOT EXISTS public.ic_ref_llm (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- IC_USER_LLM
+-- ic_user_llm
 CREATE TABLE IF NOT EXISTS public.ic_user_llm (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID REFERENCES public.ic_users(id) ON DELETE CASCADE,
@@ -217,7 +217,7 @@ CREATE TABLE IF NOT EXISTS public.ic_user_llm (
     is_active BOOLEAN DEFAULT TRUE
 );
 
--- IC_CONVERSATION
+-- ic_conversation
 CREATE TABLE IF NOT EXISTS public.ic_conversation (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID REFERENCES public.ic_users(id) ON DELETE CASCADE,
@@ -236,7 +236,7 @@ CREATE TABLE IF NOT EXISTS public.ic_conversation (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- IC_MESSAGES
+-- ic_messages
 CREATE TABLE IF NOT EXISTS public.ic_messages (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     conversation_id UUID REFERENCES public.ic_conversation(id) ON DELETE CASCADE,
@@ -251,7 +251,7 @@ CREATE TABLE IF NOT EXISTS public.ic_messages (
     is_active BOOLEAN DEFAULT TRUE
 );
 
--- IC_SPEECH_TO_TEXT
+-- ic_speech_to_text
 CREATE TABLE IF NOT EXISTS public.ic_speech_to_text (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID REFERENCES public.ic_users(id) ON DELETE CASCADE,
@@ -270,7 +270,7 @@ CREATE TABLE IF NOT EXISTS public.ic_speech_to_text (
     is_active BOOLEAN DEFAULT TRUE
 );
 
--- IC_DOCUMENTS
+-- ic_documents
 CREATE TABLE IF NOT EXISTS public.ic_documents (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     document_type TEXT,

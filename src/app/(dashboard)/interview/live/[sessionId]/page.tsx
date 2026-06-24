@@ -5,8 +5,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Mic, MicOff, Square, RefreshCcw, Scissors, Wand2, Activity, Play } from 'lucide-react'
+import { useParams } from 'next/navigation'
 
-export default function LiveInterviewPage({ params }: { params: { sessionId: string } }) {
+export default function LiveInterviewPage() {
+  const params = useParams<{ sessionId: string }>()
   const [isRecording, setIsRecording] = useState(false)
   const [transcript, setTranscript] = useState<{role: 'interviewer' | 'candidate', text: string}[]>([])
   const [detectedQuestion, setDetectedQuestion] = useState<string | null>(null)
