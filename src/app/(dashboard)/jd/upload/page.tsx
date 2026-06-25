@@ -105,11 +105,17 @@ export default function JDUploadPage() {
             </div>
           )}
           {isSuccess ? (
-             <div className="flex flex-col items-center justify-center p-12 text-center space-y-4 border-2 border-dashed border-teal-200 bg-teal-50/50 rounded-lg dark:bg-teal-950/20">
-               <CheckCircle2 className="w-16 h-16 text-teal-600" />
-               <h3 className="text-2xl font-bold text-slate-900">JD Processed!</h3>
-               <p className="text-slate-500">We've extracted the requirements and scored your resume against this role.</p>
-               <Button size="lg" className="mt-4 bg-teal-600 hover:bg-teal-700 text-white" onClick={() => window.location.href = `/jd/${(window as any)._uploadedJdId}/score`}>View Score Report</Button>
+             <div className="flex flex-col p-8 border-2 border-dashed border-teal-200 bg-teal-50/50 rounded-lg dark:bg-teal-950/20">
+               <div className="flex flex-col items-center text-center space-y-4">
+                 <CheckCircle2 className="w-16 h-16 text-teal-600" />
+                 <h3 className="text-2xl font-bold text-slate-900">JD Processed!</h3>
+                 <p className="text-slate-500">We've extracted the requirements and successfully parsed the role.</p>
+               </div>
+               <div className="flex justify-end mt-8">
+                 <Button size="lg" className="bg-teal-600 hover:bg-teal-700 text-white" onClick={() => window.location.href = `/jd/${(window as any)._uploadedJdId}/edit`}>
+                   Next
+                 </Button>
+               </div>
              </div>
           ) : isProcessing ? (
              <div className="flex flex-col items-center justify-center p-12 text-center space-y-4 border-2 border-dashed border-teal-200 bg-teal-50/30 rounded-lg">

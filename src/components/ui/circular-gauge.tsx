@@ -5,9 +5,10 @@ interface CircularGaugeProps {
   size?: number;
   strokeWidth?: number;
   isCompact?: boolean;
+  hideText?: boolean;
 }
 
-export function CircularGauge({ score, size = 160, strokeWidth = 14, isCompact = false }: CircularGaugeProps) {
+export function CircularGauge({ score, size = 160, strokeWidth = 14, isCompact = false, hideText = false }: CircularGaugeProps) {
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
   // Score mapped to a 0-10 scale
@@ -52,10 +53,16 @@ export function CircularGauge({ score, size = 160, strokeWidth = 14, isCompact =
         />
       </svg>
       {/* Text in the middle */}
-      <div className={`flex flex-col items-center justify-center ${isCompact ? 'space-y-0' : 'space-y-1'}`}>
-        <span className={`${isCompact ? 'text-lg' : 'text-4xl'} font-extrabold text-slate-900 dark:text-slate-100`}>{displayScore}</span>
-        {!isCompact && <span className="text-sm font-medium text-slate-400">/ 10</span>}
-      </div>
+      {!hideText && (
+        <div className={`flex flex-col items-center justify-center leading-none ${size < 50 ? '-space-y-1 mt-0' : size < 100 ? '-space-y-0.5 mt-0.5' : 'space-y-1'}`}>
+          <span className={`font-extrabold text-slate-900 dark:text-slate-100 ${size < 50 ? 'text-sm' : size < 100 ? 'text-lg' : isCompact ? 'text-2xl' : 'text-4xl'}`}>
+            {displayScore}
+          </span>
+          <span className={`font-medium text-slate-400 ${size < 50 ? 'text-[7px]' : size < 100 ? 'text-[9px]' : isCompact ? 'text-xs' : 'text-sm'}`}>
+            / 10
+          </span>
+        </div>
+      )}
     </div>
   );
 }

@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Plus, Trash2, Save, Loader2 } from 'lucide-react';
+import { Plus, Trash2, Save, Loader2, X } from 'lucide-react';
 
 export function ProfileEditorClient({ initialData, saveAction }: { initialData: any, saveAction: (data: any) => Promise<any> }) {
   const router = useRouter();
@@ -150,17 +150,29 @@ export function ProfileEditorClient({ initialData, saveAction }: { initialData: 
               <CardTitle>Technical Skills</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="flex gap-2 max-w-md">
-                <Input placeholder="Add a new skill..." value={newSkill} onChange={e => setNewSkill(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && addSkill()} />
-                <Button onClick={addSkill} type="button">Add</Button>
-              </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2 p-3 border rounded-md focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 bg-background cursor-text" onClick={() => document.getElementById('skill-input')?.focus()}>
                 {skills.map((skill, i) => (
                   <div key={i} className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium flex items-center gap-2">
                     {skill}
-                    <button onClick={() => removeSkill(i)} className="text-primary hover:text-red-500"><Trash2 className="w-3 h-3" /></button>
+                    <button onClick={() => removeSkill(i)} type="button" className="text-primary hover:text-red-500"><X className="w-3 h-3" /></button>
                   </div>
                 ))}
+                <input 
+                  id="skill-input"
+                  type="text" 
+                  className="flex-1 outline-none min-w-[120px] bg-transparent text-sm" 
+                  placeholder={skills.length === 0 ? "Type a skill and press Enter..." : "Add another skill..."}
+                  value={newSkill} 
+                  onChange={e => setNewSkill(e.target.value)} 
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      addSkill();
+                    } else if (e.key === 'Backspace' && newSkill === '' && skills.length > 0) {
+                      removeSkill(skills.length - 1);
+                    }
+                  }}
+                />
               </div>
             </CardContent>
           </Card>

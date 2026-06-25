@@ -57,7 +57,10 @@ export async function POST(request: Request) {
       extracted_skills: analysis.extracted_skills,
       matched_skills: analysis.matched_skills,
       missing_skills: analysis.missing_skills,
-      suggestions: analysis.suggestions
+      suggestions: analysis.suggestions,
+      responsibilities: analysis.responsibilities,
+      must_have: analysis.must_have,
+      nice_to_have: analysis.nice_to_have
     });
 
     return NextResponse.json({ success: true, data: newJd });

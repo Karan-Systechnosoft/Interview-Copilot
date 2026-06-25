@@ -74,3 +74,21 @@ export async function createJD(jdData: any) {
   if (error) throw error;
   return data;
 }
+
+export async function updateJD(id: string, updates: any) {
+  const supabase = await createClient();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+  if (authError || !user) throw new Error("Unauthorized");
+
+  const { data, error } = await supabase
+    .from('ic_job_descriptions')
+    .update(updates)
+    .eq('id', id)
+    .eq('user_id', user.id)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}

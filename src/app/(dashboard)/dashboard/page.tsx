@@ -78,7 +78,7 @@ export default async function DashboardPage() {
           <CardContent>
             <div className="text-2xl font-bold flex items-center gap-2">
               {hasProfile ? (
-                <><CheckCircle2 className={`w-5 h-5 ${profilePercentage === 100 ? 'text-green-500' : 'text-blue-500'}`} /> {profilePercentage}% Complete</>
+                <><CheckCircle2 className={`w-5 h-5 ${profilePercentage === 100 ? 'text-green-500' : 'text-blue-500'}`} /> {profilePercentage}%</>
               ) : (
                 <><AlertTriangle className="w-5 h-5 text-yellow-500" /> Incomplete</>
               )}
