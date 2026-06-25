@@ -203,3 +203,163 @@ export async function updateResumeData(parsedResume: any) {
 
   return { success: true };
 }
+
+export async function saveFullProfile(data: any) {
+  const supabase = await createClient();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+  if (authError || !user) throw new Error("Unauthorized");
+
+  // 1. Update Basic Profile
+  if (data.profile) {
+    const { error: profileError } = await supabase.from('ic_users').update({
+      name: data.profile.name,
+      email: data.profile.email,
+      phone: data.profile.phone,
+      location: data.profile.location,
+      profile_summary: data.profile.profile_summary,
+      total_exp: data.profile.total_exp,
+      title: data.profile.title,
+    }).eq('id', user.id);
+    
+    if (profileError) throw new Error(`Profile Update Error: ${profileError.message}`);
+  }
+
+  // Helper to parse Year safely
+  const parseYear = (y: any) => {
+    if (!y) return null;
+    const num = parseInt(y, 10);
+    return isNaN(num) ? null : num;
+  };
+
+  // 2. Experience
+  if (data.experiences) {
+    await supabase.from('ic_experience').delete().eq('user_id', user.id);
+    const expsToInsert = data.experiences.map((exp: any, idx: number) => ({
+      user_id: user.id,
+      company_name: exp.company_name || 'Unknown',
+      job_title: exp.job_title || 'Unknown',
+      start_date: exp.start_date || null,
+      end_date: exp.end_date || null,
+      is_current: exp.is_current || false,
+      responsibilities: exp.responsibilities || '',
+      is_active: true,
+      sort_order: idx
+    }));
+    if (expsToInsert.length > 0) {
+      const { error } = await supabase.from('ic_experience').insert(expsToInsert);
+      if (error) throw new Error(`Experience Insert Error: ${error.message}`);
+    }
+  }
+
+  // 3. Education
+  if (data.education) {
+    await supabase.from('ic_education').delete().eq('user_id', user.id);
+    const edusToInsert = data.education.map((edu: any, idx: number) => ({
+      user_id: user.id,
+      degree: edu.degree || 'Unknown',
+      field_of_study: edu.field_of_study || '',
+      institute_name: edu.institute_name || 'Unknown',
+      start_year: parseYear(edu.start_year),
+      end_year: parseYear(edu.end_year),
+      sort_order: idx
+    }));
+    if (edusToInsert.length > 0) {
+      const { error } = await supabase.from('ic_education').insert(edusToInsert);
+      if (error) throw new Error(`Education Insert Error: ${error.message}`);
+    }
+  }
+
+  // 4. Projects
+  if (data.projects) {
+    await supabase.from('ic_projects').delete().eq('user_id', user.id);
+    const projsToInsert = data.projects.map((proj: any, idx: number) => ({
+      user_id: user.id,
+      title: proj.title || 'Unknown',
+      description: proj.description || '',
+      role: proj.role || '',
+      duration: proj.duration || null,
+      technologies: Array.isArray(proj.technologies) 
+        ? proj.technologies 
+        : (typeof proj.technologies === 'string' ? proj.technologies.split(',').map((s: string) => s.trim()) : []),
+      is_active: true,
+      sort_order: idx
+    }));
+    if (projsToInsert.length > 0) {
+      const { error } = await supabase.from('ic_projects').insert(projsToInsert);
+      if (error) throw new Error(`Projects Insert Error: ${error.message}`);
+    }
+  }
+
+  // 5. Certificates
+  if (data.certificates) {
+    await supabase.from('ic_certificates').delete().eq('user_id', user.id);
+    const certsToInsert = data.certificates.map((cert: any, idx: number) => ({
+      user_id: user.id,
+      certificate_name: cert.certificate_name || 'Unknown',
+      issuer: cert.issuer || '',
+      is_active: true,
+      sort_order: idx
+    }));
+    if (certsToInsert.length > 0) {
+      const { error } = await supabase.from('ic_certificates').insert(certsToInsert);
+      if (error) throw new Error(`Certificates Insert Error: ${error.message}`);
+    }
+  }
+
+  // 6. Social Links
+  if (data.socialLinks) {
+    await supabase.from('ic_social_links').delete().eq('user_id', user.id);
+    const linksToInsert = data.socialLinks.map((link: any, idx: number) => ({
+      user_id: user.id,
+      link_type: link.link_type || 'custom',
+      url: link.url || '',
+      display_label: link.display_label || 'Link',
+      is_active: true,
+      sort_order: idx
+    }));
+    if (linksToInsert.length > 0) {
+      const { error } = await supabase.from('ic_social_links').insert(linksToInsert);
+      if (error) throw new Error(`Links Insert Error: ${error.message}`);
+    }
+  }
+
+  // 7. Skills
+  if (data.skills && Array.isArray(data.skills)) {
+    const skillsData = data.skills.map((s: string) => s.trim()).filter(Boolean);
+    
+    if (skillsData.length > 0) {
+      const { data: existingSkills } = await supabase.from('ic_skills').select('id, skill_name').in('skill_name', skillsData);
+      const existingSkillNames = existingSkills?.map(s => s.skill_name.toLowerCase()) || [];
+      
+      const missingSkills = skillsData
+        .filter((s: string) => !existingSkillNames.includes(s.toLowerCase()))
+        .map((s: string) => ({ skill_name: s, is_active: true }));
+        
+      let allSkills = [...(existingSkills || [])];
+      
+      if (missingSkills.length > 0) {
+        const { data: insertedSkills, error: insertSkillError } = await supabase.from('ic_skills').insert(missingSkills).select('id, skill_name');
+        if (!insertSkillError && insertedSkills) {
+          allSkills = [...allSkills, ...insertedSkills];
+        }
+      }
+      
+      await supabase.from('ic_skills_mapping').delete().eq('entity_id', user.id).eq('entity_type', 'user');
+      const mappings = allSkills.map(skill => ({
+        skill_id: skill.id,
+        entity_type: 'user',
+        entity_id: user.id,
+        is_active: true
+      }));
+      
+      if (mappings.length > 0) {
+        await supabase.from('ic_skills_mapping').insert(mappings);
+      }
+    } else {
+      await supabase.from('ic_skills_mapping').delete().eq('entity_id', user.id).eq('entity_type', 'user');
+    }
+  }
+
+  return { success: true };
+}

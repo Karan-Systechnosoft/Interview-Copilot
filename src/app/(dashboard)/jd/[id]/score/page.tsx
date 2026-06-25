@@ -1,10 +1,13 @@
 import { getJDById } from '@/services/database/jd'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import Link from 'next/link'
-import { CheckCircle2, AlertTriangle, XCircle, PlayCircle, FileText, ArrowLeft } from 'lucide-react'
+import { AlertTriangle, PlayCircle, FileText, ArrowLeft, ChevronDown, Star } from 'lucide-react'
 import { notFound } from 'next/navigation'
+import { CircularGauge } from '@/components/ui/circular-gauge'
+import { TopSkillsList } from '@/components/jd/TopSkillsList'
+import { ExpandableList } from '@/components/jd/ExpandableList'
 
 export default async function JDScorePage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params
@@ -16,24 +19,56 @@ export default async function JDScorePage({ params }: { params: Promise<{ id: st
 
   const overallScore = jd.candidate_score || 0
   const scoreLabel = overallScore >= 80 ? 'Strong Match' : overallScore >= 60 ? 'Moderate Match' : 'Weak Match'
-  const scoreColor = overallScore >= 80 ? 'text-green-500' : overallScore >= 60 ? 'text-yellow-500' : 'text-red-500'
 
   // Parse JSON data we saved from the AI analysis
   let extractedSkills: string[] = []
-  let matchedSkills: string[] = []
+  let matchedSkills: { name: string, rating: number }[] = []
   let missingSkills: string[] = []
   let suggestions: string[] = []
+  let mustHave: string[] = []
+  let niceToHave: string[] = []
+  let responsibilities: string[] = []
 
   try {
-    if (jd.must_have_text) extractedSkills = JSON.parse(jd.must_have_text)
-    if (jd.nice_to_have_text) missingSkills = JSON.parse(jd.nice_to_have_text)
+    if (jd.must_have_text) mustHave = JSON.parse(jd.must_have_text)
+    if (jd.nice_to_have_text) niceToHave = JSON.parse(jd.nice_to_have_text)
+    
     if (jd.responsibilities_text) {
       const resp = JSON.parse(jd.responsibilities_text)
-      matchedSkills = resp.matched || []
-      suggestions = resp.suggestions || []
+      
+      if (resp.matched) {
+        matchedSkills = resp.matched.map((s: any) => 
+          typeof s === 'string' ? { name: s, rating: 4.8 } : s
+        )
+      }
+      if (resp.suggestions) suggestions = resp.suggestions
+      if (resp.responsibilities) responsibilities = resp.responsibilities
+      if (resp.missing) missingSkills = resp.missing
+      if (resp.extracted) extractedSkills = resp.extracted
     }
+
+    // Backward compatibility for old JDs
+    if (!extractedSkills.length && mustHave.length > 0 && !responsibilities.length) {
+       // It's an old JD. The mustHave array actually contains the extracted skills.
+       extractedSkills = [...mustHave];
+       // We'll also leave them in mustHave so the UI section renders!
+    }
+    if (!missingSkills.length && niceToHave.length > 0 && !responsibilities.length) {
+       // It's an old JD. The niceToHave array actually contains the missing skills.
+       missingSkills = [...niceToHave];
+       // We'll also leave them in niceToHave so the UI section renders!
+    }
+
   } catch (e) {
     console.error("Failed to parse JD analysis JSON strings", e)
+  }
+
+  // Sort matched skills by highest rating first
+  matchedSkills.sort((a, b) => b.rating - a.rating)
+  
+  // Helper to check if a skill is matched
+  const isSkillMatched = (skillName: string) => {
+    return matchedSkills.some(m => m.name.toLowerCase() === skillName.toLowerCase())
   }
 
   return (
@@ -56,82 +91,116 @@ export default async function JDScorePage({ params }: { params: Promise<{ id: st
         </div>
       </div>
 
-      <div className="grid md:grid-cols-3 gap-6">
-        <Card className="md:col-span-1 flex flex-col items-center justify-center text-center p-6 border-primary/20 bg-primary/5">
-          <CardHeader className="pb-2">
-            <CardTitle>Overall Score</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className={`text-6xl font-extrabold ${scoreColor}`}>
-              {overallScore}<span className="text-3xl text-muted-foreground">/100</span>
+      {/* JD Details Accordion */}
+      <details className="group bg-card border rounded-xl shadow-sm overflow-hidden" open>
+        <summary className="flex items-center justify-between p-4 cursor-pointer font-bold text-lg bg-slate-50 dark:bg-slate-900/50 hover:bg-slate-100 dark:hover:bg-slate-900 list-none">
+          Job Description Details
+          <ChevronDown className="w-5 h-5 text-muted-foreground transition-transform group-open:rotate-180" />
+        </summary>
+        <div className="p-6 space-y-8 border-t bg-white dark:bg-slate-950">
+          
+          {jd.job_summary && (
+            <div>
+              <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Summary</h4>
+              <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">{jd.job_summary}</p>
             </div>
-            <Badge variant="outline" className="text-sm px-4 py-1">{scoreLabel}</Badge>
-          </CardContent>
-          <CardFooter className="flex-col gap-2 pt-4 border-t w-full">
-             <Link href="/onboarding/resume" className="w-full">
-               <Button variant="outline" className="w-full">Re-upload Resume</Button>
-             </Link>
-             <Link href="/jd/upload" className="w-full">
-               <Button variant="ghost" className="w-full">Upload New JD</Button>
-             </Link>
-          </CardFooter>
-        </Card>
+          )}
 
+          {responsibilities.length > 0 && (
+            <div>
+              <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Responsibilities</h4>
+              <ExpandableList items={responsibilities} initialCount={4} />
+            </div>
+          )}
+
+          <div className="grid md:grid-cols-2 gap-6">
+            {mustHave.length > 0 && (
+              <div className="p-5 border border-green-100 dark:border-green-900/30 rounded-xl bg-white dark:bg-slate-950 shadow-sm flex flex-col">
+                <h4 className="text-sm font-bold text-green-600 dark:text-green-500 mb-3 uppercase tracking-wider">Must Have</h4>
+                <div className="flex-1">
+                  <ExpandableList items={mustHave} initialCount={4} />
+                </div>
+              </div>
+            )}
+            {niceToHave.length > 0 && (
+              <div className="p-5 border border-blue-100 dark:border-blue-900/30 rounded-xl bg-white dark:bg-slate-950 shadow-sm flex flex-col">
+                <h4 className="text-sm font-bold text-blue-600 dark:text-blue-500 mb-3 uppercase tracking-wider">Nice To Have</h4>
+                <div className="flex-1">
+                  <ExpandableList items={niceToHave} initialCount={4} />
+                </div>
+              </div>
+            )}
+          </div>
+
+          {extractedSkills.length > 0 && (
+            <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
+              <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Required Skills & Tags</h4>
+              <div className="flex flex-wrap gap-2">
+                {extractedSkills.map((s, i) => {
+                  const isMatched = isSkillMatched(s);
+                  return (
+                   <Badge key={i} variant="secondary" className="bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400 font-medium px-3 py-1 flex items-center gap-1.5 border-0">
+                     {isMatched && <Star className="w-3.5 h-3.5 fill-orange-400 text-orange-400" />}
+                     {s}
+                   </Badge>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+      </details>
+
+      <div className="grid md:grid-cols-3 gap-6">
+        {/* Left Column: Overall Score & Top Skills */}
+        <div className="md:col-span-1 space-y-6">
+          <Card className="flex flex-col items-center p-6 border-slate-200">
+            <CardHeader className="pb-4 items-center w-full">
+              <CardTitle className="text-sm font-bold text-slate-500 uppercase tracking-wider">AI Fit Breakdown</CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-col items-center justify-center w-full pb-0">
+              <CircularGauge score={overallScore} size={180} strokeWidth={16} />
+              <div className="text-center mt-6 space-y-1">
+                <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider">Overall Fit</h3>
+                <p className={`font-bold ${overallScore >= 80 ? 'text-green-500' : overallScore >= 60 ? 'text-yellow-500' : 'text-red-500'}`}>
+                  {scoreLabel}
+                </p>
+              </div>
+              
+              <div className="w-full h-px bg-border my-6"></div>
+              
+              <TopSkillsList skills={matchedSkills} />
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Right Column: Missing Skills & Suggestions */}
         <div className="md:col-span-2 space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Match Breakdown</CardTitle>
+               <div className="flex items-center justify-between">
+                 <CardTitle className="text-sm font-bold text-slate-500 uppercase tracking-wider">Missing Skills</CardTitle>
+                 <Badge variant="outline" className="text-yellow-600 border-yellow-300">Needs Attention</Badge>
+               </div>
             </CardHeader>
-            <CardContent className="space-y-6">
-              
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 className="w-5 h-5 text-green-500" />
-                    <span className="font-medium text-lg">Matched Skills</span>
-                  </div>
-                  <Badge variant="secondary">{matchedSkills.length} found</Badge>
-                </div>
-                {matchedSkills.length > 0 ? (
-                  <div className="flex flex-wrap gap-2 ml-7">
-                    {matchedSkills.map((skill, idx) => (
-                      <Badge key={idx} variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                        {skill}
-                      </Badge>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground ml-7">No key skills matched from your profile.</p>
-                )}
-              </div>
-
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <AlertTriangle className="w-5 h-5 text-yellow-500" />
-                    <span className="font-medium text-lg">Missing Skills</span>
-                  </div>
-                  <Badge variant="outline" className="text-yellow-600 border-yellow-300">Needs Attention</Badge>
-                </div>
-                {missingSkills.length > 0 ? (
-                  <div className="flex flex-wrap gap-2 ml-7">
-                    {missingSkills.map((skill, idx) => (
-                      <Badge key={idx} variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200 font-mono">
-                        {skill}
-                      </Badge>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground ml-7">You matched all extracted skills!</p>
-                )}
-              </div>
-
+            <CardContent>
+               {missingSkills.length > 0 ? (
+                 <div className="flex flex-wrap gap-2">
+                   {missingSkills.map((skill, idx) => (
+                     <Badge key={idx} variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
+                       {skill}
+                     </Badge>
+                   ))}
+                 </div>
+               ) : (
+                 <p className="text-sm text-muted-foreground">You matched all extracted skills!</p>
+               )}
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader>
-              <CardTitle>Preparation Suggestions</CardTitle>
+              <CardTitle className="text-sm font-bold text-slate-500 uppercase tracking-wider">Preparation Suggestions</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {suggestions.length > 0 ? (

@@ -56,9 +56,15 @@ export async function createJD(jdData: any) {
         company_name: jdData.company_name,
         job_summary: jdData.job_summary,
         candidate_score: jdData.candidate_score,
-        must_have_text: JSON.stringify(jdData.extracted_skills || []),
-        nice_to_have_text: JSON.stringify(jdData.missing_skills || []),
-        responsibilities_text: JSON.stringify({ matched: jdData.matched_skills || [], suggestions: jdData.suggestions || [] }),
+        must_have_text: JSON.stringify(jdData.must_have || []),
+        nice_to_have_text: JSON.stringify(jdData.nice_to_have || []),
+        responsibilities_text: JSON.stringify({
+          responsibilities: jdData.responsibilities || [],
+          matched: jdData.matched_skills || [],
+          missing: jdData.missing_skills || [],
+          suggestions: jdData.suggestions || [],
+          extracted: jdData.extracted_skills || []
+        }),
         is_active: true,
       }
     ])

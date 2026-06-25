@@ -7,9 +7,12 @@ export interface JdAnalysisResult {
   job_summary: string;
   candidate_score: number;
   extracted_skills: string[];
-  matched_skills: string[];
+  matched_skills: { name: string; rating: number }[];
   missing_skills: string[];
   suggestions: string[];
+  responsibilities: string[];
+  must_have: string[];
+  nice_to_have: string[];
 }
 
 const JD_ANALYSIS_PROMPT = `
@@ -19,6 +22,8 @@ Your task is to analyze the JD, extract its key details, extract the required sk
 
 Calculate the candidate_score (0 to 100) specifically based on the percentage of extracted_skills that the candidate possesses (matched_skills), heavily weighting must-have core skills and experience match.
 
+For each skill that the candidate matches, provide a rating from 1.0 to 5.0 based on how deep or extensive their experience appears to be in their profile.
+
 Provide 2-3 specific suggestions for how the candidate can improve their chances (e.g., "Add GraphQL to your resume", "Highlight system design in your current role").
 
 Return ONLY a valid JSON object exactly adhering to this schema:
@@ -26,9 +31,12 @@ Return ONLY a valid JSON object exactly adhering to this schema:
   "title": "string (The job title)",
   "company_name": "string (The company name, or 'Unknown' if not specified)",
   "job_summary": "string (A 2-3 sentence summary of the role and key requirements)",
+  "responsibilities": ["string", "string"] (Key responsibilities extracted from the JD),
+  "must_have": ["string", "string"] (Absolute minimum requirements/qualifications from the JD),
+  "nice_to_have": ["string", "string"] (Bonus or preferred qualifications from the JD),
   "candidate_score": number (0 to 100, based on skill match ratio),
   "extracted_skills": ["string", "string"] (ONLY extract hard technical skills, tools, frameworks, and languages. DO NOT extract generic soft skills like Communication, Problem-solving, or Detail Oriented),
-  "matched_skills": ["string", "string"] (Skills the candidate HAS based on their profile),
+  "matched_skills": [{"name": "string", "rating": number}, ...] (Skills the candidate HAS based on their profile. Rate each 1.0 to 5.0),
   "missing_skills": ["string", "string"] (Skills from the JD the candidate is MISSING),
   "suggestions": ["string", "string"] (Actionable suggestions to improve their profile/resume for this specific JD)
 }
@@ -40,16 +48,19 @@ export async function analyzeJd(jdText: string, candidateProfileText: string): P
   const geminiKey = process.env.GEMINI_API_KEY;
   const openaiKey = process.env.OPENAI_API_KEY;
 
-  if (!groqKey && !geminiKey && !openaiKey) {
+    if (!groqKey && !geminiKey && !openaiKey) {
     return {
       title: "Extracted Job Title",
       company_name: "Extracted Company",
       job_summary: "Fallback summary due to missing API keys. " + jdText.slice(0, 50),
       candidate_score: 85,
       extracted_skills: ["React", "Node.js"],
-      matched_skills: ["React"],
+      matched_skills: [{ name: "React", rating: 4.5 }],
       missing_skills: ["Node.js"],
-      suggestions: ["Learn Node.js"]
+      suggestions: ["Learn Node.js"],
+      responsibilities: ["Develop UI components", "Optimize performance"],
+      must_have: ["3+ years React", "TypeScript proficiency"],
+      nice_to_have: ["GraphQL", "Next.js"]
     };
   }
 

@@ -3,12 +3,28 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { UploadCloud, Edit3, Briefcase, GraduationCap, FolderGit2 } from 'lucide-react';
+import { UploadCloud, Edit3, Briefcase, GraduationCap, FolderGit2, AlertTriangle, Award } from 'lucide-react';
 import Link from 'next/link';
 import { ExpandableSkills } from '@/components/profile/ExpandableSkills';
+import { calculateProfileScore, identifyResumeGaps } from '@/lib/utils/profileScorer';
+import { format, isValid } from 'date-fns';
 
 export const metadata = {
   title: 'My Profile | PrepJinni',
+};
+
+const formatDisplayDate = (dateString: string | null | undefined) => {
+  if (!dateString) return '';
+  const parsed = new Date(dateString);
+  return isValid(parsed) ? format(parsed, 'MMM yyyy') : dateString;
+};
+
+const formatDurationString = (duration: string | null | undefined) => {
+  if (!duration) return '';
+  return duration.replace(/\d{4}-\d{2}-\d{2}/g, (match) => {
+    const parsed = new Date(match);
+    return isValid(parsed) ? format(parsed, 'MMM yyyy') : match;
+  });
 };
 
 export default async function ProfilePage() {
@@ -38,6 +54,9 @@ export default async function ProfilePage() {
     );
   }
 
+  const profileScore = calculateProfileScore(profile, experiences, education, skills, projects);
+  const resumeGaps = identifyResumeGaps(experiences);
+
   return (
     <div className="max-w-5xl mx-auto space-y-8">
       {/* Header Section */}
@@ -47,8 +66,10 @@ export default async function ProfilePage() {
           <p className="text-muted-foreground">{profile.title || 'Software Engineer'} • {profile.location || 'Remote'}</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" disabled title="Edit profile feature coming soon">
-            <Edit3 className="w-4 h-4 mr-2" /> Edit Profile
+          <Button variant="outline" size="sm" asChild>
+            <Link href="/profile/edit">
+              <><Edit3 className="w-4 h-4 mr-2" /> Edit Profile</>
+            </Link>
           </Button>
           <Button size="sm" asChild>
              <Link href="/onboarding/resume">Update Resume</Link>
@@ -56,9 +77,42 @@ export default async function ProfilePage() {
         </div>
       </div>
 
+      {resumeGaps.length > 0 && (
+        <div className="bg-amber-50 border border-amber-200 dark:bg-amber-950/30 dark:border-amber-900/50 p-4 rounded-lg flex flex-col sm:flex-row gap-4 items-start shadow-sm">
+          <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-500 shrink-0 mt-0.5" />
+          <div className="space-y-2 w-full">
+            <h3 className="font-bold text-amber-800 dark:text-amber-500">Potential Resume Gaps Identified</h3>
+            <ul className="list-disc pl-5 space-y-1 text-sm text-amber-700/90 dark:text-amber-500/80 marker:text-amber-500/50">
+              {resumeGaps.map((gap, i) => (
+                <li key={i}>{gap}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         {/* Left Column (Summary) */}
         <div className="md:col-span-1 space-y-6">
+          <Card className="flex flex-col items-center justify-center p-6 border-slate-200">
+            <CardHeader className="pb-4 items-center w-full px-0">
+              <div className="flex items-center gap-2 mb-2">
+                <Award className="w-5 h-5 text-blue-600" />
+                <CardTitle className="text-sm font-bold text-slate-700 uppercase tracking-wider">Profile Score</CardTitle>
+              </div>
+            </CardHeader>
+            <div className="w-full h-px bg-border mb-6"></div>
+            <CardContent className="flex flex-col items-center justify-center w-full pb-0 px-0">
+              <div className="text-center">
+                <div className="flex items-baseline justify-center font-bold text-blue-600">
+                  <span className="text-5xl tracking-tighter">{profileScore.toFixed(1)}</span>
+                  <span className="text-2xl text-slate-400">/10</span>
+                </div>
+                <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold mt-3">Resume & Profile Quality</p>
+              </div>
+            </CardContent>
+          </Card>
+
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Contact</CardTitle>
@@ -157,7 +211,7 @@ export default async function ProfilePage() {
                           <CardDescription className="text-md mt-1 font-medium">{exp.company_name}</CardDescription>
                         </div>
                         <Badge variant="secondary">
-                           {exp.start_date} - {exp.is_current ? 'Present' : exp.end_date}
+                           {formatDisplayDate(exp.start_date)} - {exp.is_current ? 'Present' : formatDisplayDate(exp.end_date)}
                         </Badge>
                       </div>
                     </CardHeader>
@@ -185,7 +239,7 @@ export default async function ProfilePage() {
                           </CardTitle>
                           <CardDescription className="text-md mt-1">{proj.role}</CardDescription>
                         </div>
-                        {proj.duration && <Badge variant="secondary">{proj.duration}</Badge>}
+                        {proj.duration && <Badge variant="secondary">{formatDurationString(proj.duration)}</Badge>}
                       </div>
                     </CardHeader>
                     <CardContent>

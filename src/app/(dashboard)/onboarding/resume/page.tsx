@@ -78,7 +78,7 @@ export default function ResumeUploadPage() {
                 <CheckCircle2 className="w-12 h-12 text-teal-600" />
                 <h3 className="text-xl font-bold text-slate-900">Resume Parsed Successfully!</h3>
                 <p className="text-sm text-slate-500">Your profile has been updated.</p>
-                <Button className="bg-teal-600 hover:bg-teal-700 text-white" onClick={() => window.location.href = '/profile/review'}>Review Profile</Button>
+                <Button className="bg-teal-600 hover:bg-teal-700 text-white" onClick={() => window.location.href = '/profile/edit'}>Review Profile</Button>
               </div>
             ) : isParsing ? (
               <div className="flex flex-col items-center text-center space-y-4">

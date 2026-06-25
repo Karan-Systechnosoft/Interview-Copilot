@@ -6,6 +6,8 @@ import { FileText, Briefcase, PlayCircle, CheckCircle2, AlertTriangle, ArrowRigh
 import { getUserProfile } from '@/services/database/user'
 import { getUserJDs } from '@/services/database/jd'
 import { getUserSessions } from '@/services/database/interview'
+import { calculateProfileScore } from '@/lib/utils/profileScorer'
+import { CircularGauge } from '@/components/ui/circular-gauge'
 
 export const metadata = {
   title: 'Dashboard | PrepJinni',
@@ -19,6 +21,31 @@ export default async function DashboardPage() {
   ]);
 
   const hasProfile = !!(profileData?.profile?.name || profileData?.profile?.total_exp);
+  
+  let profilePercentage = 0;
+  const missingSections: string[] = [];
+
+  if (hasProfile && profileData) {
+    const { profile, experiences, education, projects, certificates, socialLinks, skills } = profileData;
+    
+    // Check 8 key sections
+    const sections = [
+      { name: 'Contact Info', filled: !!(profile?.email || profile?.phone) },
+      { name: 'Summary', filled: !!profile?.profile_summary },
+      { name: 'Experience', filled: !!(experiences && experiences.length > 0) },
+      { name: 'Education', filled: !!(education && education.length > 0) },
+      { name: 'Skills', filled: !!(skills && skills.length > 0) },
+      { name: 'Projects', filled: !!(projects && projects.length > 0) },
+      { name: 'Certificates', filled: !!(certificates && certificates.length > 0) },
+      { name: 'Links', filled: !!(socialLinks && socialLinks.length > 0) }
+    ];
+
+    const filledCount = sections.filter(s => s.filled).length;
+    profilePercentage = Math.round((filledCount / sections.length) * 100);
+
+    sections.filter(s => !s.filled).forEach(s => missingSections.push(s.name));
+  }
+
   const activeJdsCount = jds?.length || 0;
   const sessionsCount = sessions?.length || 0;
   
@@ -50,10 +77,18 @@ export default async function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold flex items-center gap-2">
-              {hasProfile ? <><CheckCircle2 className="w-5 h-5 text-green-500" /> Complete</> : <><AlertTriangle className="w-5 h-5 text-yellow-500" /> Incomplete</>}
+              {hasProfile ? (
+                <><CheckCircle2 className={`w-5 h-5 ${profilePercentage === 100 ? 'text-green-500' : 'text-blue-500'}`} /> {profilePercentage}% Complete</>
+              ) : (
+                <><AlertTriangle className="w-5 h-5 text-yellow-500" /> Incomplete</>
+              )}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              {hasProfile ? 'Your resume is loaded and ready.' : 'Upload your resume to get started'}
+              {hasProfile 
+                ? (missingSections.length > 0 
+                    ? `Missing: ${missingSections.slice(0, 3).join(', ')}${missingSections.length > 3 ? '...' : ''}`
+                    : 'Your profile is 100% complete!') 
+                : 'Upload your resume to get started'}
             </p>
             <Link href={hasProfile ? "/profile" : "/onboarding/resume"}>
               <Button variant="link" className="px-0 mt-2">{hasProfile ? 'View Profile' : 'Upload Resume'}</Button>
@@ -142,10 +177,10 @@ export default async function DashboardPage() {
                       <p className="font-medium truncate">{jd.title}</p>
                       <p className="text-xs text-muted-foreground truncate">{jd.company_name}</p>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <Badge variant={jd.candidate_score >= 80 ? 'default' : jd.candidate_score >= 50 ? 'secondary' : 'destructive'} className={jd.candidate_score >= 80 ? 'bg-green-100 text-green-700 hover:bg-green-100' : ''}>
-                        {jd.candidate_score}%
-                      </Badge>
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center justify-center shrink-0">
+                        <CircularGauge score={jd.candidate_score || 0} size={42} strokeWidth={4} isCompact={true} />
+                      </div>
                       <Link href={`/jd/${jd.id}/score`}>
                         <Button variant="ghost" size="icon" className="h-8 w-8"><ArrowRight className="w-4 h-4" /></Button>
                       </Link>
