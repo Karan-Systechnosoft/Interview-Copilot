@@ -7,7 +7,7 @@ import { LayoutDashboard, FileText, Briefcase, PlayCircle, History } from 'lucid
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Candidate Profile', href: '/profile', icon: FileText },
-  { name: 'Job Descriptions', href: '/jd/upload', icon: Briefcase },
+  { name: 'Job Descriptions', href: '/jd', icon: Briefcase },
   { name: 'Interview Setup', href: '/interview/setup', icon: PlayCircle },
   { name: 'Session History', href: '/interview/history', icon: History },
 ]

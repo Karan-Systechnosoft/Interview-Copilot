@@ -118,7 +118,7 @@ export function AuthForm() {
   return (
     <Card className="w-full max-w-md mx-auto shadow-lg border-slate-200">
       <CardHeader className="space-y-1 pb-6">
-        <CardTitle className="text-2xl text-center font-bold tracking-tight text-slate-900">Welcome Back</CardTitle>
+        <CardTitle className="text-2xl text-center font-bold tracking-tight text-slate-900">Welcome</CardTitle>
         <CardDescription className="text-center text-slate-500">Sign in to your PrepJinni account</CardDescription>
       </CardHeader>
       <CardContent>

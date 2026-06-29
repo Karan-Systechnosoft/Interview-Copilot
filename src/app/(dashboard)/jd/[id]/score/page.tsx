@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { AlertTriangle, PlayCircle, FileText, ArrowLeft, ChevronDown, Star } from 'lucide-react'
 import { notFound } from 'next/navigation'
 import { CircularGauge } from '@/components/ui/circular-gauge'
-import { TopSkillsList } from '@/components/jd/TopSkillsList'
+import { ScoreMatchLayout } from '@/components/jd/ScoreMatchLayout'
 import { ExpandableList } from '@/components/jd/ExpandableList'
 
 export default async function JDScorePage({ params }: { params: Promise<{ id: string }> }) {
@@ -84,10 +84,20 @@ export default async function JDScorePage({ params }: { params: Promise<{ id: st
           <h1 className="text-3xl font-bold tracking-tight">JD Match Score Report</h1>
           <p className="text-muted-foreground">Detailed breakdown of how well your profile matches the role: <strong>{jd.title}</strong>.</p>
         </div>
-        <div className="flex gap-2">
-          <Link href={`/interview/setup?jdId=${jd.id}`}>
-            <Button className="gap-2"><PlayCircle className="w-4 h-4" /> Continue to Interview</Button>
+        <div className="flex flex-col items-end gap-3 min-w-[200px]">
+          <Link href={`/interview/setup?jdId=${jd.id}`} className="w-full sm:w-auto">
+            <Button className="w-full gap-2"><PlayCircle className="w-4 h-4" /> Continue to Interview</Button>
           </Link>
+          <div className="flex items-center gap-4 bg-white dark:bg-slate-950 p-3 px-4 rounded-xl border shadow-sm w-full sm:w-auto justify-center sm:justify-start">
+            <CircularGauge score={overallScore} size={64} strokeWidth={6} />
+            <div>
+              <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">AI Fit Score</p>
+              <p className={`font-bold text-xl leading-none ${overallScore >= 80 ? 'text-green-500' : overallScore >= 60 ? 'text-yellow-500' : 'text-red-500'}`}>
+                {overallScore}%
+              </p>
+              <p className="text-[10px] text-muted-foreground uppercase mt-1">{scoreLabel}</p>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -117,109 +127,39 @@ export default async function JDScorePage({ params }: { params: Promise<{ id: st
             {mustHave.length > 0 && (
               <div className="p-5 border border-green-100 dark:border-green-900/30 rounded-xl bg-white dark:bg-slate-950 shadow-sm flex flex-col">
                 <h4 className="text-sm font-bold text-green-600 dark:text-green-500 mb-3 uppercase tracking-wider">Must Have</h4>
-                <div className="flex-1">
-                  <ExpandableList items={mustHave} initialCount={4} />
+                <div className="flex flex-wrap gap-2">
+                  {mustHave.map((skill, i) => (
+                    <Badge key={i} variant="secondary" className="bg-green-50 text-green-600 hover:bg-green-100 dark:bg-green-900/20 dark:text-green-400 font-medium px-3 py-1 flex items-center gap-1.5 border-0">
+                      {isSkillMatched(skill) && <Star className="w-3.5 h-3.5 fill-orange-400 text-orange-400" />}
+                      {skill}
+                    </Badge>
+                  ))}
                 </div>
               </div>
             )}
             {niceToHave.length > 0 && (
               <div className="p-5 border border-blue-100 dark:border-blue-900/30 rounded-xl bg-white dark:bg-slate-950 shadow-sm flex flex-col">
                 <h4 className="text-sm font-bold text-blue-600 dark:text-blue-500 mb-3 uppercase tracking-wider">Nice To Have</h4>
-                <div className="flex-1">
-                  <ExpandableList items={niceToHave} initialCount={4} />
+                <div className="flex flex-wrap gap-2">
+                  {niceToHave.map((skill, i) => (
+                    <Badge key={i} variant="secondary" className="bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400 font-medium px-3 py-1 flex items-center gap-1.5 border-0">
+                      {isSkillMatched(skill) && <Star className="w-3.5 h-3.5 fill-orange-400 text-orange-400" />}
+                      {skill}
+                    </Badge>
+                  ))}
                 </div>
               </div>
             )}
           </div>
 
-          {extractedSkills.length > 0 && (
-            <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
-              <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Required Skills & Tags</h4>
-              <div className="flex flex-wrap gap-2">
-                {extractedSkills.map((s, i) => {
-                  const isMatched = isSkillMatched(s);
-                  return (
-                   <Badge key={i} variant="secondary" className="bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400 font-medium px-3 py-1 flex items-center gap-1.5 border-0">
-                     {isMatched && <Star className="w-3.5 h-3.5 fill-orange-400 text-orange-400" />}
-                     {s}
-                   </Badge>
-                  )
-                })}
-              </div>
-            </div>
-          )}
         </div>
       </details>
 
-      <div className="grid md:grid-cols-3 gap-6">
-        {/* Left Column: Overall Score & Top Skills */}
-        <div className="md:col-span-1 space-y-6">
-          <Card className="flex flex-col items-center p-6 border-slate-200">
-            <CardHeader className="pb-4 items-center w-full">
-              <CardTitle className="text-sm font-bold text-slate-500 uppercase tracking-wider">AI Fit Breakdown</CardTitle>
-            </CardHeader>
-            <CardContent className="flex flex-col items-center justify-center w-full pb-0">
-              <CircularGauge score={overallScore} size={180} strokeWidth={16} />
-              <div className="text-center mt-6 space-y-1">
-                <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider">Overall Fit</h3>
-                <p className={`font-bold ${overallScore >= 80 ? 'text-green-500' : overallScore >= 60 ? 'text-yellow-500' : 'text-red-500'}`}>
-                  {scoreLabel}
-                </p>
-              </div>
-              
-              <div className="w-full h-px bg-border my-6"></div>
-              
-              <TopSkillsList skills={matchedSkills} />
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Right Column: Missing Skills & Suggestions */}
-        <div className="md:col-span-2 space-y-6">
-          <Card>
-            <CardHeader>
-               <div className="flex items-center justify-between">
-                 <CardTitle className="text-sm font-bold text-slate-500 uppercase tracking-wider">Missing Skills</CardTitle>
-                 <Badge variant="outline" className="text-yellow-600 border-yellow-300">Needs Attention</Badge>
-               </div>
-            </CardHeader>
-            <CardContent>
-               {missingSkills.length > 0 ? (
-                 <div className="flex flex-wrap gap-2">
-                   {missingSkills.map((skill, idx) => (
-                     <Badge key={idx} variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
-                       {skill}
-                     </Badge>
-                   ))}
-                 </div>
-               ) : (
-                 <p className="text-sm text-muted-foreground">You matched all extracted skills!</p>
-               )}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-bold text-slate-500 uppercase tracking-wider">Preparation Suggestions</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {suggestions.length > 0 ? (
-                suggestions.map((suggestion, idx) => (
-                  <div key={idx} className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-900 rounded-lg flex items-start gap-3">
-                    <FileText className="w-5 h-5 text-blue-600 mt-0.5 shrink-0" />
-                    <div>
-                      <h4 className="font-semibold text-blue-900 dark:text-blue-400">Action Item {idx + 1}</h4>
-                      <p className="text-sm text-blue-800/80 dark:text-blue-200/70 mt-1">{suggestion}</p>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <p className="text-sm text-muted-foreground">No specific suggestions provided by AI.</p>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+      <ScoreMatchLayout 
+        matchedSkills={matchedSkills} 
+        missingSkills={missingSkills} 
+        suggestions={suggestions} 
+      />
     </div>
   )
 }
